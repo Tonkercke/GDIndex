@@ -193,7 +193,10 @@ async function handleRequest(request) {
 		.map(decodeURIComponent) // for some super special cases, browser will force encode it...   eg: +αあるふぁきゅん。 - +♂.mp3
 		.join('/')
 
-	if (self.props.lite && request.pathname.endsWith('/')) {
+	if (
+		(self.props.lite || request.headers.get('x-lite') == 'true') &&
+		request.pathname.endsWith('/')
+	) {
 		// lite mode
 		const path = request.pathname
 		let parent = encodePathComponent(
@@ -255,7 +258,7 @@ addEventListener('fetch', event => {
 	event.respondWith(
 		handleRequest(event.request).catch(err => {
 			console.error(err)
-			new Response(JSON.stringify(err.stack), {
+			return new Response(JSON.stringify(err.stack), {
 				status: 500,
 				headers: {
 					'Content-Type': 'application/json'
